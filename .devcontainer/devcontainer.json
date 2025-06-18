@@ -2,7 +2,7 @@
 	"dockerComposeFile": [
 		"compose.yaml"
 	],
-	"initializeCommand": "xhost +local:docker",
+	"initializeCommand": "xhost +",
 	// "onCreateCommand": "/bin/bash /home/developer/ros2_ws/setup.sh",
 	"service": "workspace",
 	"workspaceFolder": "/home/developer/ros2_ws/src",
