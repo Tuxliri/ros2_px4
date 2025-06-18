@@ -21,6 +21,7 @@ RUN apt update && \
         python3-colcon-clean \
         ros-humble-mavros \
         ros-humble-mavros-extras \
+        ros-humble-apriltag-ros \
         wget \
         clang-format && \
     python3 -m pip install -U \
