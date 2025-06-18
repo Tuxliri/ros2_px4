@@ -19,6 +19,8 @@ RUN apt update && \
         python3-setuptools \
         python3-vcstool \
         python3-colcon-clean \
+        ros-humble-mavros \
+        ros-humble-mavros-extras \
         wget \
         clang-format && \
     python3 -m pip install -U \
@@ -64,6 +66,9 @@ RUN git clone https://github.com/PX4/PX4-Autopilot.git ~/PX4-Autopilot --recursi
 COPY . /home/developer/ros2_ws
 WORKDIR /home/developer/ros2_ws
 
+RUN sudo apt-get install -y geographiclib-tools && \
+    sudo geographiclib-get-geoids egm96-5 && \
+    sudo geographiclib-get-datasets all
 
 RUN echo ". /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc \
     && echo ". /home/developer/ros2_ws/install/setup.bash" >> ~/.bashrc
