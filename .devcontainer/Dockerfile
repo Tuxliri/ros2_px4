@@ -59,6 +59,10 @@ RUN apt-get upgrade -y
 RUN useradd -rm -d /home/developer -s /bin/bash -g root -G sudo -u 1001 developer && \
     echo 'developer:developer' | chpasswd && \
     adduser developer sudo
+
+RUN apt-get install -y geographiclib-tools && \
+        geographiclib-get-geoids egm96-5
+
 USER developer
 
 RUN git clone https://github.com/PX4/PX4-Autopilot.git ~/PX4-Autopilot --recursive -b release/1.15 && \
@@ -66,10 +70,6 @@ RUN git clone https://github.com/PX4/PX4-Autopilot.git ~/PX4-Autopilot --recursi
 
 COPY . /home/developer/ros2_ws
 WORKDIR /home/developer/ros2_ws
-
-RUN sudo apt-get install -y geographiclib-tools && \
-    sudo geographiclib-get-geoids egm96-5 && \
-    sudo geographiclib-get-datasets all
 
 RUN echo ". /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc \
     && echo ". /home/developer/ros2_ws/install/setup.bash" >> ~/.bashrc
