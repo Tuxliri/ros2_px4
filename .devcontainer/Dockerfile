@@ -19,9 +19,10 @@ RUN apt update && \
         python3-setuptools \
         python3-vcstool \
         python3-colcon-clean \
+        ros-humble-apriltag-ros \
+        ros-humble-foxglove-bridge \
         ros-humble-mavros \
         ros-humble-mavros-extras \
-        ros-humble-apriltag-ros \
         wget \
         clang-format && \
     python3 -m pip install -U \
@@ -58,7 +59,8 @@ RUN apt-get upgrade -y
 
 RUN useradd -rm -d /home/developer -s /bin/bash -g root -G sudo -u 1001 developer && \
     echo 'developer:developer' | chpasswd && \
-    adduser developer sudo
+    echo 'developer ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/developer && \
+    chmod 0440 /etc/sudoers.d/developer
 
 RUN apt-get install -y geographiclib-tools && \
         geographiclib-get-geoids egm96-5
