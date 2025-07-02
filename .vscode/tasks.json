@@ -1,0 +1,31 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "colcon",
+			"args": [
+				"build",
+				"--symlink-install",
+				"--event-handlers",
+				"console_cohesion+",
+				"--base-paths",
+				"/home/developer/ros2_ws",
+				"--cmake-args",
+				"-DCMAKE_BUILD_TYPE=RelWithDebInfo",
+				"--packages-select",
+				"vision_to_mavros"
+			],
+      "options": {
+        "cwd": "/home/developer/ros2_ws"
+      },
+			"problemMatcher": [
+				"$colcon-gcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"label": "colcon: build vision_to_mavros"
+		}
+	]
+}
