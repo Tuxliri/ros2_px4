@@ -24,6 +24,7 @@ def generate_launch_description():
                 'x500_ros_bringup.launch.py'
             )
         ),
+        launch_arguments={'use_sim_time': LaunchConfiguration('use_sim_time')}.items()
     )
 
     # RViz
@@ -54,11 +55,14 @@ def generate_launch_description():
         executable='apriltag_node',
         name='apriltag_node',
         output='screen',
-        parameters=[os.path.join(
-            get_package_share_directory('apriltag_ros'),
-            'cfg',
-            'tags_36h11.yaml'
-        )],
+        parameters=[
+            os.path.join(
+                get_package_share_directory('apriltag_ros'),
+                'cfg',
+                'tags_36h11.yaml'
+            ),
+            {'use_sim_time': LaunchConfiguration('use_sim_time')}
+        ],
         remappings=[
             ('image_rect',  '/camera'),
             ('camera_info', '/camera_info'),
@@ -66,6 +70,7 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        DeclareLaunchArgument('use_sim_time', default_value='true', description='Use simulated clock'),
         DeclareLaunchArgument('rviz', default_value='false',
                               description='Open RViz.'),
         x500_ros_bringup,

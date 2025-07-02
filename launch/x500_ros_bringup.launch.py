@@ -39,6 +39,12 @@ def generate_launch_description():  # noqa: D401
         description="Absolute path to the X-500 model.sdf file",
     )
 
+    use_sim_time_arg = DeclareLaunchArgument(
+        "use_sim_time",
+        default_value="true",
+        description="Use simulation time if true",
+    )
+
     # ── MAVROS launch include -------------------------------------------------
     mavros_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -73,7 +79,7 @@ def generate_launch_description():  # noqa: D401
             executable="parameter_bridge",
             name="gz_param_bridge",
             output="screen",
-            parameters=[{"use_sim_time": True}],
+            parameters=[{"use_sim_time": LaunchConfiguration("use_sim_time")}],
             arguments=[
                 # Sim time
                 "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
@@ -96,7 +102,7 @@ def generate_launch_description():  # noqa: D401
             parameters=[
                 {
                     "robot_description": sdf_xml,
-                    "use_sim_time": True,
+                    "use_sim_time": LaunchConfiguration("use_sim_time"),
                 }
             ],
         )
@@ -106,5 +112,6 @@ def generate_launch_description():  # noqa: D401
     # ── Final LD --------------------------------------------------------------
     return LaunchDescription([
         model_arg,
+        use_sim_time_arg,
         OpaqueFunction(function=_setup),
     ])
