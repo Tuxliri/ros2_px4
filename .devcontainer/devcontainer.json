@@ -26,7 +26,8 @@
 				"twxs.cmake",
 				"redhat.vscode-xml",
 				"actboy168.tasks",
-				"brpaz.file-templates"
+				"brpaz.file-templates",
+				"Ranch-Hand-Robotics.rde-ros-2"
 			]
 		}
 	}
