@@ -3,7 +3,7 @@ set -e
 
 cd /home/developer/ros2_ws
 
-vcs import --recursive < /home/developer/ros2_ws/src/px4.repos src
+# vcs import --recursive < /home/developer/ros2_ws/src/px4.repos src
 
 rosdep update --rosdistro $ROS_DISTRO
 rosdep install -i --from-path src --rosdistro $ROS_DISTRO -y
