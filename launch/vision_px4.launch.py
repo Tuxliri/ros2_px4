@@ -69,6 +69,12 @@ def generate_launch_description():
         ]
     )
 
+    # Foxglove bridge node
+    foxglove_bridge_node = Node(
+        package="foxglove_bridge",
+        executable="foxglove_bridge",
+    )
+
     return LaunchDescription([
         DeclareLaunchArgument('use_sim_time', default_value='true', description='Use simulated clock'),
         DeclareLaunchArgument('rviz', default_value='false',
@@ -76,5 +82,6 @@ def generate_launch_description():
         x500_ros_bringup,
         rviz,
         apriltag_ros_node,
-        apriltag_gz_spawner
+        apriltag_gz_spawner,
+        foxglove_bridge_node
     ])
