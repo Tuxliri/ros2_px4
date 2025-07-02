@@ -27,6 +27,8 @@ def generate_launch_description() -> LaunchDescription:
         'respawn_mavros', default_value='false'))
     ld.add_action(DeclareLaunchArgument(
         'namespace', default_value='mavros'))
+    ld.add_action(DeclareLaunchArgument(
+        'use_sim_time', default_value='true'))
 
     # -------------------------
     # Include MAVROS node file
@@ -55,6 +57,7 @@ def generate_launch_description() -> LaunchDescription:
                 'fcu_protocol':   LaunchConfiguration('fcu_protocol'),
                 'respawn_mavros': LaunchConfiguration('respawn_mavros'),
                 'namespace':      LaunchConfiguration('namespace'),
+                'use_sim_time':   LaunchConfiguration('use_sim_time'),
             }.items()
         )
     )
