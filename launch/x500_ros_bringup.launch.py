@@ -76,7 +76,7 @@ def generate_launch_description():  # noqa: D401
             cmd=[
                 "bash",
                 "-lc",
-                f"cd ~/PX4-Autopilot && PX4_GZ_WORLD={world_name} make px4_sitl gz_x500_mono_cam_down",
+                f"cd ~/PX4-Autopilot && PX4_GZ_WORLD={world_name} make px4_sitl gz_x500_mono_cam",
             ],
             output="screen",
         )
@@ -95,9 +95,9 @@ def generate_launch_description():  # noqa: D401
                 "/world/default/dynamic_pose/info@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
                 # Joint states (if any movable joints)
                 "/world/default/model/x500/joint_state@sensor_msgs/msg/JointState[gz.msgs.Model",
-                # Camera image + info so perception nodes can subscribe
-                "/world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image",
-                "/world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
+                # Camera image + info so perception nodes can subscribe (forward-facing)
+                "/world/default/model/x500_mono_cam_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image",
+                "/world/default/model/x500_mono_cam_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
             ],
         )
 
