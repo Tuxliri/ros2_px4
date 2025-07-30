@@ -1,0 +1,96 @@
+# OpenVINS Configuration for X500 Monocular Camera + IMU
+# Based on EuRoC dataset configuration adapted for PX4 Gazebo simulation
+
+# Verbosity level (ALL, DEBUG, INFO, WARN, ERROR, SILENT)
+verbosity: "INFO"
+
+# Use fej (first-estimate Jacobians) 
+use_fej: true
+
+# Use stereo tracking? (false for monocular)
+use_stereo: false
+
+# Max number of cameras we have
+max_cameras: 1
+
+# Our camera calibrations and extrinsics
+# NOTE: These values are placeholders and should be calibrated for your specific setup
+cam0:
+  T_CtoI:
+    - [1.0, 0.0, 0.0, 0.1]    # Camera pointing forward, 10cm ahead of IMU
+    - [0.0, 1.0, 0.0, 0.0]    # Camera X-axis aligned with IMU X-axis (forward)
+    - [0.0, 0.0, 1.0, 0.0]    # Camera Y-axis aligned with IMU Y-axis (left)
+    - [0.0, 0.0, 0.0, 1.0]    # Camera Z-axis aligned with IMU Z-axis (up)
+  
+  cam_intrinsics:
+    - [320.0]  # fx - focal length in x
+    - [320.0]  # fy - focal length in y  
+    - [320.0]  # cx - principal point x
+    - [240.0]  # cy - principal point y
+  
+  cam_wh: [640, 480]  # width, height
+  
+  cam_d:
+    - [0.0]     # k1 - radial distortion 1
+    - [0.0]     # k2 - radial distortion 2
+    - [0.0]     # p1 - tangential distortion 1
+    - [0.0]     # p2 - tangential distortion 2
+
+# Camera properties
+cam_model: "pinhole"  # Camera model (pinhole, fisheye)
+cam_distortion: "radtan"  # Distortion model (radtan, equi)
+
+# IMU noise characteristics (typical values for simulation)
+imu_config:
+  sigma_w: 0.01745329252       # gyroscope "white noise" [rad/s/sqrt(Hz)]
+  sigma_wb: 0.00008726646259  # gyroscope "bias instability" [rad/s]
+  sigma_a: 0.05               # accelerometer "white noise" [m/s^2/sqrt(Hz)]
+  sigma_ab: 0.001             # accelerometer "bias instability" [m/s^2]
+  
+# Feature tracking parameters
+num_pts: 200                  # Number of features to track
+fast_threshold: 20            # FAST corner detection threshold
+grid_x: 5                     # Grid size for feature distribution
+grid_y: 5
+min_px_dist: 15               # Minimum pixel distance between features
+knn_ratio: 0.70               # KNN ratio for outlier rejection
+track_frequency: 15.0         # Feature tracking frequency [Hz]
+downsample_cameras: false     # Downsample camera images
+
+# Tracking options
+use_klt: true                 # Use KLT feature tracker
+num_opencv_threads: 4         # Number of OpenCV threads
+histogram_method: "HISTOGRAM" # Feature extraction method
+
+# State estimation parameters
+gravity_mag: 9.81             # Gravity magnitude [m/s^2]
+
+# Initial IMU intrinsics
+T_ItoIMU:
+  - [1.0, 0.0, 0.0, 0.0]      # Identity transformation (IMU frame = body frame)
+  - [0.0, 1.0, 0.0, 0.0]
+  - [0.0, 0.0, 1.0, 0.0]
+  - [0.0, 0.0, 0.0, 1.0]
+
+# MSCKF parameters  
+max_clone_size: 11            # Max number of poses in sliding window
+max_slam_features: 50         # Max number of SLAM features
+max_slam_in_update: 25        # Max SLAM features to update at once
+max_msckf_in_update: 50       # Max MSCKF features to update at once
+dt_slam_delay: 3              # Delay before using SLAM features
+
+# Initialization parameters
+init_window_time: 2.0         # Time window for initialization [s]
+init_imu_thresh: 1.5          # IMU threshold for initialization [rad/s]
+
+# Publishing and saving options
+save_trajectory: false        # Save trajectory to file
+trajectory_fmt: "tum"         # Trajectory format
+publish_global_to_imu_tf: true # Publish global to IMU transform
+
+# Zero velocity update (not typically used in flight)
+try_zupt: false
+
+# Record timing information
+record_timing_information: false
+record_timing_filepath: "/tmp/openvins_timing.txt"
