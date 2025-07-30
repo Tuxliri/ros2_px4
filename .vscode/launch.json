@@ -16,8 +16,8 @@
       ],
       "type": "ros2",
       "arguments": [
-        "target_frame_id:=tag36h11:9",
-        "source_frame_id:=x500_mono_cam_0/mono_cam/base_link/imager",
+        "target_frame_id:=base",
+        "source_frame_id:=x500_mono_cam_down_0/camera_link/imager",
         "use_sim_time:=true",
       ]
     }
