@@ -6,6 +6,8 @@ services:
     privileged: true
     tty: true
     stdin_open: true
+    group_add:
+      - video
     security_opt:
       - seccomp:unconfined
       - apparmor:unconfined
