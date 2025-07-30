@@ -23,6 +23,11 @@ RUN apt update && \
         ros-humble-foxglove-bridge \
         ros-humble-mavros \
         ros-humble-mavros-extras \
+        ros-humble-ros2bag \
+        ros-humble-rosbag2* \
+        libeigen3-dev \
+        libboost-all-dev \
+        libceres-dev \
         wget \
         clang-format && \
     python3 -m pip install -U \
@@ -69,6 +74,14 @@ USER developer
 
 RUN git clone https://github.com/PX4/PX4-Autopilot.git ~/PX4-Autopilot --recursive -b release/1.15 && \
     echo developer | sudo -S bash /home/developer/PX4-Autopilot/Tools/setup/ubuntu.sh
+
+# Install OpenVINS
+RUN mkdir -p ~/workspace/catkin_ws_ov/src/ && \
+    cd ~/workspace/catkin_ws_ov/src/ && \
+    git clone https://github.com/rpng/open_vins/ && \
+    cd .. && \
+    . /opt/ros/$ROS_DISTRO/setup.bash && \
+    colcon build
 
 COPY . /home/developer/ros2_ws
 WORKDIR /home/developer/ros2_ws
