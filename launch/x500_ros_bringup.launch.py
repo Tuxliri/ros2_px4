@@ -1,7 +1,7 @@
 """Unified launch file for PX4 1.15 X-500 simulation with Gazebo Harmonic.
 
 Starts:
-  • **PX4 SITL + Gazebo**          (`make px4_sitl gz_x500_mono_cam`)
+  • **PX4 SITL + Gazebo**          (`make px4_sitl gz_x500_mono_cam_down`)
   • **ros_gz_bridge**              (clock, TF, joint_states, camera)
   • **robot_state_publisher**      (reads the original SDF)
   • **MAVROS**                     (included via mavros_px4.launch.py)
@@ -68,7 +68,7 @@ def generate_launch_description():  # noqa: D401
             cmd=[
                 "bash",
                 "-lc",
-                "cd ~/PX4-Autopilot && make px4_sitl gz_x500_mono_cam",
+                "cd ~/PX4-Autopilot && make px4_sitl gz_x500_mono_cam_down",
             ],
             output="screen",
         )
@@ -79,7 +79,7 @@ def generate_launch_description():  # noqa: D401
             executable="parameter_bridge",
             name="gz_param_bridge",
             output="screen",
-            parameters=[{"use_sim_time": LaunchConfiguration("use_sim_time")}],
+            # parameters=[{"use_sim_time": LaunchConfiguration("use_sim_time")}],
             arguments=[
                 # Sim time
                 "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
@@ -88,8 +88,8 @@ def generate_launch_description():  # noqa: D401
                 # Joint states (if any movable joints)
                 "/world/default/model/x500/joint_state@sensor_msgs/msg/JointState[gz.msgs.Model",
                 # Camera image + info so perception nodes can subscribe
-                "/camera@sensor_msgs/msg/Image[gz.msgs.Image",
-                "/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
+                "/world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image",
+                "/world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
             ],
         )
 

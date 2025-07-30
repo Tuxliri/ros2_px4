@@ -40,12 +40,12 @@ def generate_launch_description():
         cmd=['ros2', 'run', 'ros_gz_sim', 'create',
              '-world', 'default',
              '-file', os.path.join(
-                 '/home/developer/.gazebo',
+                 '/home/developer/ros2_ws/src/gazebo_apriltag',
                  'models',
                  'Apriltag36_11_00009',
                  'model.sdf'
              ),
-             '-x', '0.5'],
+            ],
         output='screen'
     )
 
@@ -64,8 +64,8 @@ def generate_launch_description():
             {'use_sim_time': LaunchConfiguration('use_sim_time')}
         ],
         remappings=[
-            ('image_rect',  '/camera'),
-            ('camera_info', '/camera_info'),
+            ('image_rect',  '/world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/image'),
+            ('camera_info', '/world/default/model/x500_mono_cam_down_0/link/camera_link/sensor/imager/camera_info'),
         ]
     )
 
