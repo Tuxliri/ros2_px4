@@ -45,6 +45,12 @@ def generate_launch_description():  # noqa: D401
         description="Use simulation time if true",
     )
 
+    world_arg = DeclareLaunchArgument(
+        "world",
+        default_value="default",
+        description="Gazebo world to load (default, walls, aruco, etc.)",
+    )
+
     # ── MAVROS launch include -------------------------------------------------
     mavros_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -58,17 +64,19 @@ def generate_launch_description():  # noqa: D401
     # ── Lazy setup to load the SDF *once* ------------------------------------
     def _setup(context, *args, **kwargs):  # noqa: ANN001
         sdf_path = os.path.expanduser(LaunchConfiguration("model_sdf").perform(context))
+        world_name = LaunchConfiguration("world").perform(context)
+        
         if not os.path.isfile(sdf_path):
             raise RuntimeError(f"SDF file not found: {sdf_path}")
         with open(sdf_path, "r", encoding="utf-8") as sdf_file:
             sdf_xml = sdf_file.read()
 
-        # PX4‑SITL (Gazebo Harmonic)
+        # PX4‑SITL (Gazebo Harmonic) with configurable world
         px4_sitl = ExecuteProcess(
             cmd=[
                 "bash",
                 "-lc",
-                "cd ~/PX4-Autopilot && make px4_sitl gz_x500_mono_cam_down",
+                f"cd ~/PX4-Autopilot && PX4_GZ_WORLD={world_name} make px4_sitl gz_x500_mono_cam_down",
             ],
             output="screen",
         )
@@ -113,5 +121,6 @@ def generate_launch_description():  # noqa: D401
     return LaunchDescription([
         model_arg,
         use_sim_time_arg,
+        world_arg,
         OpaqueFunction(function=_setup),
     ])
