@@ -72,7 +72,7 @@ RUN apt-get install -y geographiclib-tools && \
 
 USER developer
 
-RUN git clone https://github.com/PX4/PX4-Autopilot.git ~/PX4-Autopilot --recursive -b release/1.15 && \
+RUN git clone https://github.com/PX4/PX4-Autopilot.git ~/PX4-Autopilot --recursive && \
     echo developer | sudo -S bash /home/developer/PX4-Autopilot/Tools/setup/ubuntu.sh
 
 # Install OpenVINS
