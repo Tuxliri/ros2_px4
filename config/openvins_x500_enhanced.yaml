@@ -73,7 +73,7 @@ grid_x: 8                       # Grid cells in X direction
 grid_y: 6                       # Grid cells in Y direction
 min_px_dist: 10                 # Minimum pixel distance between features
 knn_ratio: 0.85                 # KNN ratio test threshold
-track_frequency: 20.0           # Feature tracking frequency [Hz]
+track_frequency: 30.0           # Feature tracking frequency [Hz]
 
 # Feature tracking method
 use_klt: true                   # Use KLT tracker (better for texture)
@@ -109,7 +109,7 @@ max_msckf_in_update: 75         # Max MSCKF features per update
 dt_slam_delay: 2                # SLAM feature delay [frames]
 
 # Update frequencies
-freq_cam: 20.0                  # Camera update frequency [Hz]
+freq_cam: 30.0                  # Camera update frequency [Hz]
 freq_imu: 200.0                 # IMU update frequency [Hz]
 
 # =================================================================
