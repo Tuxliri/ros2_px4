@@ -1,0 +1,16 @@
+%YAML:1.0
+
+cam0:
+  T_cam_imu:
+    - [1.0, 0.0, 0.0, -0.1]  # Camera 10cm behind IMU, pointing forward
+    - [0.0, 1.0, 0.0, 0.0]   # Camera Y-axis aligned with IMU Y-axis (left)
+    - [0.0, 0.0, 1.0, 0.0]   # Camera Z-axis aligned with IMU Z-axis (up)
+    - [0.0, 0.0, 0.0, 1.0]   # Homogeneous coordinates
+  cam_overlaps: [1]
+  camera_model: pinhole
+  distortion_coeffs: [0.0, 0.0, 0.0, 0.0]  # No distortion for simulation
+  distortion_model: radtan
+  intrinsics: [640.0, 640.0, 320.0, 240.0]  # [fx, fy, cx, cy] - adapted for 640x480 simulation
+  resolution: [640, 480]
+  rostopic: /cam0/image_raw
+  timeshift_cam_imu: 0.0
