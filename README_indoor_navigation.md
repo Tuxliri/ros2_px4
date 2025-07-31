@@ -13,14 +13,7 @@ The setup includes:
 
 ## Quick Start
 
-### 1. Build OpenVINS (if not already built)
-```bash
-cd ~/workspace/catkin_ws_ov
-source /opt/ros/humble/setup.bash
-colcon build --event-handlers console_cohesion+ --packages-select ov_core ov_init ov_msckf ov_eval
-```
-
-### 2. Launch the complete indoor navigation system
+### 1. Launch the complete indoor navigation system
 ```bash
 # Terminal 1: Launch everything  
 ros2 launch your_package indoor_navigation_openvins.launch.py
@@ -29,7 +22,7 @@ ros2 launch your_package indoor_navigation_openvins.launch.py
 ros2 launch your_package indoor_navigation_openvins.launch.py world:=walls
 ```
 
-### 3. Verify the system is working
+### 2. Verify the system is working
 ```bash
 # Check OpenVINS is publishing pose estimates
 ros2 topic echo /ov_msckf/poseimu
