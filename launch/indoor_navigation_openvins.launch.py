@@ -84,7 +84,7 @@ def generate_launch_description():
         # OpenVINS node for visual-inertial odometry
         openvins_node = Node(
             package="ov_msckf",
-            executable="run_serial_msckf",
+            executable="run_subscribe_msckf",
             name="openvins_msckf",
             output="screen",
             parameters=[{
