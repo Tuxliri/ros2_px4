@@ -1,7 +1,7 @@
 """Unified launch file for PX4 1.15 X-500 simulation with Gazebo Harmonic.
 
 Starts:
-  • **PX4 SITL + Gazebo**          (`make px4_sitl gz_x500_mono_cam_down`)
+  • **PX4 SITL + Gazebo**          (configurable camera: `gz_x500_mono_cam` or `gz_x500_mono_cam_down`)
   • **ros_gz_bridge**              (clock, TF, joint_states, camera)
   • **robot_state_publisher**      (reads the original SDF)
   • **MAVROS**                     (included via mavros_px4.launch.py)
@@ -16,7 +16,9 @@ Place this file in any ROS2 package's *launch/* folder and run:
     ros2 launch <your_pkg> x500_ros_bringup.launch.py
 
 Optional arguments:
-  model_sdf  — path to the X-500 `model.sdf` (defaults to the PX4 repo copy)
+  model_sdf         — path to the X-500 `model.sdf` (defaults to the PX4 repo copy)
+  camera_direction  — 'down' for downward-facing camera or 'forward' for forward-facing camera
+  world            — Gazebo world to load (default, walls, aruco, etc.)
 """
 
 import os
@@ -51,6 +53,12 @@ def generate_launch_description():  # noqa: D401
         description="Gazebo world to load (default, walls, aruco, etc.)",
     )
 
+    camera_direction_arg = DeclareLaunchArgument(
+        "camera_direction",
+        default_value="down",
+        description="Camera direction: 'down' for downward-facing (x500_mono_cam_down) or 'forward' for forward-facing (x500_mono_cam)",
+    )
+
     # ── MAVROS launch include -------------------------------------------------
     mavros_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -65,18 +73,29 @@ def generate_launch_description():  # noqa: D401
     def _setup(context, *args, **kwargs):  # noqa: ANN001
         sdf_path = os.path.expanduser(LaunchConfiguration("model_sdf").perform(context))
         world_name = LaunchConfiguration("world").perform(context)
+        camera_direction = LaunchConfiguration("camera_direction").perform(context)
+        
+        # Determine model and camera configuration based on camera direction
+        if camera_direction == "forward":
+            px4_model = "gz_x500_mono_cam"
+            camera_model_name = "x500_mono_cam_0"
+        elif camera_direction == "down":
+            px4_model = "gz_x500_mono_cam_down"
+            camera_model_name = "x500_mono_cam_down_0"
+        else:
+            raise ValueError(f"Invalid camera_direction: {camera_direction}. Must be 'forward' or 'down'")
         
         if not os.path.isfile(sdf_path):
             raise RuntimeError(f"SDF file not found: {sdf_path}")
         with open(sdf_path, "r", encoding="utf-8") as sdf_file:
             sdf_xml = sdf_file.read()
 
-        # PX4‑SITL (Gazebo Harmonic) with configurable world
+        # PX4‑SITL (Gazebo Harmonic) with configurable world and camera direction
         px4_sitl = ExecuteProcess(
             cmd=[
                 "bash",
                 "-lc",
-                f"cd ~/PX4-Autopilot && PX4_GZ_WORLD={world_name} make px4_sitl gz_x500_mono_cam",
+                f"cd ~/PX4-Autopilot && PX4_GZ_WORLD={world_name} make px4_sitl {px4_model}",
             ],
             output="screen",
         )
@@ -92,12 +111,12 @@ def generate_launch_description():  # noqa: D401
                 # Sim time
                 "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
                 # All link poses → TF tree
-                "/world/default/dynamic_pose/info@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
+                f"/world/{world_name}/dynamic_pose/info@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
                 # Joint states (if any movable joints)
-                "/world/default/model/x500/joint_state@sensor_msgs/msg/JointState[gz.msgs.Model",
-                # Camera image + info so perception nodes can subscribe (forward-facing)
-                "/world/default/model/x500_mono_cam_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image",
-                "/world/default/model/x500_mono_cam_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
+                f"/world/{world_name}/model/x500/joint_state@sensor_msgs/msg/JointState[gz.msgs.Model",
+                # Camera image + info so perception nodes can subscribe
+                f"/world/{world_name}/model/{camera_model_name}/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image",
+                f"/world/{world_name}/model/{camera_model_name}/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
             ],
         )
 
@@ -122,5 +141,6 @@ def generate_launch_description():  # noqa: D401
         model_arg,
         use_sim_time_arg,
         world_arg,
+        camera_direction_arg,
         OpaqueFunction(function=_setup),
     ])
