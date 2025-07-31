@@ -67,17 +67,17 @@ def generate_launch_description():
                 "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
                 
                 # Transform tree
-                "/world/default/dynamic_pose/info@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
+                f"/world/{world_name}/dynamic_pose/info@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
                 
                 # Camera topics for OpenVINS (forward-facing camera)
-                "/world/default/model/x500_mono_cam_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image",
-                "/world/default/model/x500_mono_cam_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
+                f"/world/{world_name}/model/x500_mono_cam_0/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image",
+                f"/world/{world_name}/model/x500_mono_cam_0/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
                 
                 # IMU topics for OpenVINS  
-                "/world/default/model/x500_mono_cam_0/link/base_link/sensor/imu_sensor/imu@sensor_msgs/msg/Imu[gz.msgs.IMU",
+                f"/world/{world_name}/model/x500_mono_cam_0/link/base_link/sensor/imu_sensor/imu@sensor_msgs/msg/Imu[gz.msgs.IMU",
                 
                 # Joint states
-                "/world/default/model/x500/joint_state@sensor_msgs/msg/JointState[gz.msgs.Model",
+                f"/world/{world_name}/model/x500/joint_state@sensor_msgs/msg/JointState[gz.msgs.Model",
             ],
         )
 
@@ -93,11 +93,11 @@ def generate_launch_description():
             }],
             remappings=[
                 # Camera remappings (forward-facing camera)
-                ("/cam0/image_raw", "/world/default/model/x500_mono_cam_0/link/camera_link/sensor/imager/image"),
-                ("/cam0/camera_info", "/world/default/model/x500_mono_cam_0/link/camera_link/sensor/imager/camera_info"),
+                ("/cam0/image_raw", f"/world/{world_name}/model/x500_mono_cam_0/link/camera_link/sensor/imager/image"),
+                ("/cam0/camera_info", f"/world/{world_name}/model/x500_mono_cam_0/link/camera_link/sensor/imager/camera_info"),
                 
                 # IMU remapping
-                ("/imu0", "/world/default/model/x500_mono_cam_0/link/base_link/sensor/imu_sensor/imu"),
+                ("/imu0", f"/world/{world_name}/model/x500_mono_cam_0/link/base_link/sensor/imu_sensor/imu"),
                 
                 # Output pose for MAVROS
                 ("/ov_msckf/poseimu", "/vision_pose_estimate"),
