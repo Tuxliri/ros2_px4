@@ -96,12 +96,25 @@ def generate_launch_description():
             name='apriltag_node',
             output='screen',
             parameters=[
-                os.path.join(
-                    get_package_share_directory('apriltag_ros'),
-                    'cfg',
-                    'tags_36h11.yaml'
-                ),
-                {'use_sim_time': LaunchConfiguration('use_sim_time')}
+                {'use_sim_time': LaunchConfiguration('use_sim_time')},
+                {
+                    'family': '36h11',
+                    'image_transport': 'raw',
+                    'max_hamming': 0,
+                    'tag': {
+                        'ids': [9, 14],
+                        'frames': ['base', 'object'],
+                        'sizes': [0.15, 0.15]  # <-- override per-tag sizes here
+                    },
+                    'detector': {
+                        'threads': 1,
+                        'decimate': 2.0,
+                        'blur': 0.0,
+                        'refine': True,
+                        'sharpening': 0.25,
+                        'debug': False
+                    }
+                }
             ],
             remappings=[
                 ('image_rect',  f'/world/{world_name}/model/{camera_model_name}/link/camera_link/sensor/imager/image'),

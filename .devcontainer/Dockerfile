@@ -71,9 +71,11 @@ RUN apt-get install -y geographiclib-tools && \
         geographiclib-get-geoids egm96-5
 
 USER developer
+RUN git clone --branch v1.16.0-rc3 https://github.com/PX4/PX4-Autopilot.git ~/PX4-Autopilot --recursive
+RUN echo developer | sudo -S bash /home/developer/PX4-Autopilot/Tools/setup/ubuntu.sh
 
-RUN git clone --depth 1 --branch 9a0b666debcff4292ce51c4a52aab1f2e346e8e0 https://github.com/PX4/PX4-Autopilot.git ~/PX4-Autopilot --recursive && \
-    echo developer | sudo -S bash /home/developer/PX4-Autopilot/Tools/setup/ubuntu.sh
+#RUN git clone --depth 1 --branch 9a0b666debcff4292ce51c4a52aab1f2e346e8e0 https://github.com/PX4/PX4-Autopilot.git ~/PX4-Autopilot --recursive && \
+#    echo developer | sudo -S bash /home/developer/PX4-Autopilot/Tools/setup/ubuntu.sh
 
 # Install OpenVINS
 RUN mkdir -p ~/workspace/catkin_ws_ov/src/ && \
@@ -87,6 +89,7 @@ COPY . /home/developer/ros2_ws
 WORKDIR /home/developer/ros2_ws
 
 RUN echo ". /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc \
-    && echo ". /home/developer/ros2_ws/install/setup.bash" >> ~/.bashrc
+    && echo ". /home/developer/ros2_ws/install/setup.bash" >> ~/.bashrc \
+    && echo ". ../workspace/catkin_ws_ov/install/setup.bash" >> ~/.bashrc
 
 CMD [ "sleep", "infinity" ]

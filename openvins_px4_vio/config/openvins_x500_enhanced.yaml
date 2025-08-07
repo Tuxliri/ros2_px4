@@ -1,0 +1,168 @@
+# Enhanced OpenVINS Configuration for X500 Indoor Navigation
+# Optimized for PX4 Gazebo simulation with monocular camera + IMU
+
+# =================================================================
+# GENERAL SYSTEM CONFIGURATION  
+# =================================================================
+
+verbosity: "INFO"                # Logging level
+use_fej: true                   # Use first-estimate Jacobians
+use_imuavg: true                # Use IMU averaging for better accuracy
+use_rk4int: true                # Use RK4 integration
+calib_cam_extrinsics: false     # Don't calibrate camera extrinsics online
+calib_cam_intrinsics: false     # Don't calibrate camera intrinsics online
+calib_cam_timeoffset: false     # Don't calibrate camera time offset
+
+# =================================================================  
+# SENSOR CONFIGURATION
+# =================================================================
+
+# Number of cameras (1 for monocular)
+max_cameras: 1
+use_stereo: false
+
+# Camera 0 configuration (monocular camera pointing forward)
+cam0:
+  # Extrinsic calibration: Camera to IMU transform
+  # Camera is pointing forward, 10cm ahead of the IMU
+  T_CtoI:
+    - [1.0,  0.0,  0.0,  0.1]     # Camera X -> IMU X (forward is forward)
+    - [0.0,  1.0,  0.0,  0.0]     # Camera Y -> IMU Y (left is left)  
+    - [0.0,  0.0,  1.0,  0.0]     # Camera Z -> IMU Z (up is up)
+    - [0.0,  0.0,  0.0,  1.0]
+  
+  # Intrinsic camera parameters (typical values for Gazebo camera)
+  cam_intrinsics:
+    - [640.0]    # fx - focal length X
+    - [640.0]    # fy - focal length Y
+    - [320.0]    # cx - principal point X
+    - [240.0]    # cy - principal point Y
+  
+  # Camera resolution
+  cam_wh: [640, 480]
+  
+  # Distortion coefficients (assuming no distortion for simulation)
+  cam_d:  
+    - [0.0]      # k1
+    - [0.0]      # k2  
+    - [0.0]      # p1
+    - [0.0]      # p2
+
+# Camera model parameters
+cam_model: "pinhole"
+cam_distortion: "radtan"
+
+# =================================================================
+# IMU NOISE CHARACTERISTICS
+# =================================================================
+
+# IMU noise parameters (optimized for simulation)
+sigma_w: 0.01745329252          # Gyroscope white noise [rad/s/sqrt(Hz)]
+sigma_wb: 0.00008726646259      # Gyroscope bias instability [rad/s]  
+sigma_a: 0.02                   # Accelerometer white noise [m/s^2/sqrt(Hz)]
+sigma_ab: 0.0005                # Accelerometer bias instability [m/s^2]
+
+# =================================================================
+# FEATURE TRACKING CONFIGURATION
+# =================================================================
+
+# Feature detection and tracking
+num_pts: 300                    # Target number of features to track
+fast_threshold: 20              # FAST corner detection threshold  
+grid_x: 8                       # Grid cells in X direction
+grid_y: 6                       # Grid cells in Y direction
+min_px_dist: 10                 # Minimum pixel distance between features
+knn_ratio: 0.85                 # KNN ratio test threshold
+track_frequency: 30.0           # Feature tracking frequency [Hz]
+
+# Feature tracking method
+use_klt: true                   # Use KLT tracker (better for texture)
+num_opencv_threads: 4           # OpenCV threads
+histogram_method: "HISTOGRAM"   # Feature distribution method
+
+# Multi-threading
+num_opencv_threads: 4
+multi_threading: true
+
+# =================================================================
+# STATE ESTIMATION PARAMETERS  
+# =================================================================
+
+# Gravity magnitude
+gravity_mag: 9.81
+
+# IMU-to-IMU transformation (identity - IMU is the body frame)
+T_ItoIMU:
+  - [1.0, 0.0, 0.0, 0.0]
+  - [0.0, 1.0, 0.0, 0.0] 
+  - [0.0, 0.0, 1.0, 0.0]
+  - [0.0, 0.0, 0.0, 1.0]
+
+# =================================================================
+# MSCKF SLIDING WINDOW PARAMETERS
+# =================================================================
+
+max_clone_size: 15              # Maximum clone states in sliding window
+max_slam_features: 75           # Maximum SLAM features  
+max_slam_in_update: 30          # Max SLAM features per update
+max_msckf_in_update: 75         # Max MSCKF features per update
+dt_slam_delay: 2                # SLAM feature delay [frames]
+
+# Update frequencies
+freq_cam: 30.0                  # Camera update frequency [Hz]
+freq_imu: 200.0                 # IMU update frequency [Hz]
+
+# =================================================================
+# INITIALIZATION PARAMETERS
+# =================================================================
+
+init_window_time: 1.5           # Initialization window [seconds]
+init_imu_thresh: 1.2            # IMU movement threshold [rad/s]
+init_max_disparity: 10.0        # Maximum disparity for initialization
+init_max_features: 50           # Maximum features for initialization
+
+# =================================================================
+# ZUPT (Zero Velocity Update) - Disabled for Flight
+# =================================================================
+
+try_zupt: false                 # Disable ZUPT for aerial vehicles
+zupt_chi2_multipler: 2.0        # Chi-squared multiplier for ZUPT
+zupt_max_velocity: 0.5          # Maximum velocity for ZUPT [m/s]
+zupt_noise_multiplier: 10.0     # ZUPT noise multiplier
+zupt_max_disparity: 0.4         # Maximum disparity for ZUPT
+
+# =================================================================
+# OUTPUT AND PUBLISHING OPTIONS
+# =================================================================
+
+# Publishing options  
+publish_global_to_imu_tf: true  # Publish transform from global to IMU
+publish_calibration_tf: true    # Publish calibration transforms
+
+# Trajectory saving (disabled for real-time operation)
+save_trajectory: false
+trajectory_fmt: "tum"
+
+# Recording options
+record_timing_information: false
+record_timing_filepath: "/tmp/openvins_timing.txt"
+
+# =================================================================
+# ADVANCED PARAMETERS
+# =================================================================
+
+# Outlier rejection
+outlier_multi_sigma: 2.5        # Outlier rejection threshold  
+outlier_multi_sigma_calc: 2.0   # Outlier calculation threshold
+
+# Measurement noise inflation
+inflation_orientation: 2.0      # Orientation noise inflation
+inflation_position: 2.0         # Position noise inflation
+inflation_landmark: 2.0         # Landmark noise inflation
+
+# State covariance
+init_ori_cov: 0.1              # Initial orientation covariance
+init_pos_cov: 0.1              # Initial position covariance  
+init_vel_cov: 0.1              # Initial velocity covariance
+init_bg_cov: 0.01              # Initial gyro bias covariance
+init_ba_cov: 0.01              # Initial accel bias covariance
