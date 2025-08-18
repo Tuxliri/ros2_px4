@@ -31,8 +31,8 @@ def generate_launch_description():
 
     world_arg = DeclareLaunchArgument(
         "world",
-        default_value="walls",
-        description="Gazebo world to load (walls for indoor navigation)",
+        default_value="default",
+        description="Gazebo world to load",
     )
 
     camera_direction_arg = DeclareLaunchArgument(
@@ -45,8 +45,9 @@ def generate_launch_description():
     mavros_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
-                os.path.dirname(__file__),
-                "mavros_px4.launch.py",
+                "/home/developer/ros2_ws/src/launch/mavros_px4.launch.py"
+                # os.path.dirname(__file__),
+                # "mavros_px4.launch.py",
             )
         )
     )
@@ -66,12 +67,11 @@ def generate_launch_description():
             raise ValueError(f"Invalid camera_direction: {camera_direction}. Must be 'forward' or 'down'")
 
         # TODO: use warehouse world for more realistic indoor navigation
-        # PX4 SITL with X500 monocular camera in walls world
         px4_sitl = ExecuteProcess(
             cmd=[
                 "bash",
                 "-lc",
-                f"cd ~/PX4-Autopilot && PX4_GZ_WORLD={world_name} make px4_sitl {px4_model}",
+                f"cd ~/PX4-Autopilot && HEADLESS=1 PX4_GZ_WORLD={world_name} make px4_sitl {px4_model}",
             ],
             output="screen",
         )

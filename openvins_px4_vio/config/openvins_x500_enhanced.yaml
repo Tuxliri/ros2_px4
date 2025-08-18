@@ -117,7 +117,7 @@ freq_imu: 200.0                 # IMU update frequency [Hz]
 # =================================================================
 
 init_window_time: 1.5           # Initialization window [seconds]
-init_imu_thresh: 1.2            # IMU movement threshold [rad/s]
+init_imu_thresh: 10000000            # IMU movement threshold [rad/s]
 init_max_disparity: 10.0        # Maximum disparity for initialization
 init_max_features: 50           # Maximum features for initialization
 
