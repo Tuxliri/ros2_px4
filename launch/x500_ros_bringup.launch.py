@@ -6,9 +6,6 @@ Starts:
   • **robot_state_publisher**      (reads the original SDF)
   • **MAVROS**                     (included via mavros_px4.launch.py)
 
-RViz and other demo nodes (AprilTag spawner, detectors, etc.) were
-intentionally left out per request; feel free to add them back later.
-
 Usage
 -----
 Place this file in any ROS2 package's *launch/* folder and run:
@@ -16,9 +13,9 @@ Place this file in any ROS2 package's *launch/* folder and run:
     ros2 launch <your_pkg> x500_ros_bringup.launch.py
 
 Optional arguments:
-  model_sdf         — path to the X-500 `model.sdf` (defaults to the PX4 repo copy)
-  camera_direction  — 'down' for downward-facing camera or 'forward' for forward-facing camera
-  world            — Gazebo world to load (default, walls, aruco, etc.)
+  model                 — Name of the PX4 model you want to use
+  camera_direction      — 'down' for downward-facing camera or 'forward' for forward-facing camera
+  world                 — Gazebo world to load (default, walls, aruco, etc.)
 """
 
 import os
@@ -31,14 +28,10 @@ from launch_ros.actions import Node
 
 def generate_launch_description():  # noqa: D401
     # ── Where is the SDF? -----------------------------------------------------
-    default_model_path = os.path.expanduser(
-        "~/PX4-Autopilot/Tools/simulation/gz/models/x500_base/model.sdf"
-    )
-    print(f"Using X-500 model SDF: {default_model_path}")
     model_arg = DeclareLaunchArgument(
-        "model_sdf",
-        default_value=TextSubstitution(text=default_model_path),
-        description="Absolute path to the X-500 model.sdf file",
+        "model",
+        default_value="gz_x500_mono_cam_down",
+        description="Name of the PX4 model to use",
     )
 
     use_sim_time_arg = DeclareLaunchArgument(
@@ -53,12 +46,6 @@ def generate_launch_description():  # noqa: D401
         description="Gazebo world to load (default, walls, aruco, etc.)",
     )
 
-    camera_direction_arg = DeclareLaunchArgument(
-        "camera_direction",
-        default_value="down",
-        description="Camera direction: 'down' for downward-facing (x500_mono_cam_down) or 'forward' for forward-facing (x500_mono_cam)",
-    )
-
     # ── MAVROS launch include -------------------------------------------------
     mavros_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -69,78 +56,69 @@ def generate_launch_description():  # noqa: D401
         )
     )
 
-    # ── Lazy setup to load the SDF *once* ------------------------------------
     def _setup(context, *args, **kwargs):  # noqa: ANN001
-        sdf_path = os.path.expanduser(LaunchConfiguration("model_sdf").perform(context))
         world_name = LaunchConfiguration("world").perform(context)
-        camera_direction = LaunchConfiguration("camera_direction").perform(context)
-        
-        # Determine model and camera configuration based on camera direction
-        if camera_direction == "forward":
-            px4_model = "gz_x500_mono_cam"
-            camera_model_name = "x500_mono_cam_0"
-        elif camera_direction == "down":
-            px4_model = "gz_x500_mono_cam_down"
-            camera_model_name = "x500_mono_cam_down_0"
-        else:
-            raise ValueError(f"Invalid camera_direction: {camera_direction}. Must be 'forward' or 'down'")
-        
-        if not os.path.isfile(sdf_path):
-            raise RuntimeError(f"SDF file not found: {sdf_path}")
-        with open(sdf_path, "r", encoding="utf-8") as sdf_file:
-            sdf_xml = sdf_file.read()
+        model_px4 = LaunchConfiguration("model").perform(context)
+
 
         # PX4‑SITL (Gazebo Harmonic) with configurable world and camera direction
         px4_sitl = ExecuteProcess(
             cmd=[
                 "bash",
                 "-lc",
-                f"cd ~/PX4-Autopilot && PX4_GZ_WORLD={world_name} make px4_sitl {px4_model}",
+                f"cd ~/PX4-Autopilot && PX4_GZ_WORLD={world_name} make px4_sitl {model_px4}",
             ],
             output="screen",
         )
 
-        # ros_gz parameter bridge — clock + pose TF + joint states + camera
+        # ros_gz parameter bridge — clock + pose TF + joint states + camera + rangefinder
+        bridge_args = [
+            "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
+            f"/world/{world_name}/dynamic_pose/info@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
+            f"/world/{world_name}/model/x500/joint_state@sensor_msgs/msg/JointState[gz.msgs.Model",
+            f"/world/{world_name}/pose/info@geometry_msgs/msg/PoseArray@gz.msgs.Pose_V",
+            f"/world/{world_name}/model/x500_lidar_down_0/link/lidar_sensor_link/sensor/lidar/scan@sensor_msgs/msg/Range@gz.msgs.LaserScan",
+        ]
+
+        # If there is a camera model name add camera topics
+        camera_model_map = {
+            "gz_x500_mono_cam": "x500_mono_cam_0",
+            "gz_x500_mono_cam_down": "x500_mono_cam_down_0",
+        }
+
+        camera_model_name = camera_model_map.get(model_px4)
+        if camera_model_name is None:
+            supported_models = ", ".join(camera_model_map.keys())
+            print(f"Warning: No camera model found for PX4 model '{model_px4}'. No camera topics will be published."
+                    f"Available models with cameras: {supported_models}")
+
+        if camera_model_name:
+            bridge_args.extend([
+                f"/world/{world_name}/model/{camera_model_name}/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image",
+                f"/world/{world_name}/model/{camera_model_name}/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
+            ])
+
+        # Remap topics (these apply regardless of camera)
+        bridge_args.extend([
+            '--ros-args', '--remap', f'/world/{world_name}/pose/info:=/gz/pose_info',
+            '--remap', f'/world/{world_name}/model/x500_lidar_down_0/link/lidar_sensor_link/sensor/lidar/scan:=/mavros/laser_1_sub',
+        ])
+
+        # ros_gz parameter bridge — clock + pose TF + joint states + camera + rangefinder
         bridge = Node(
             package="ros_gz_bridge",
             executable="parameter_bridge",
             name="gz_param_bridge",
             output="screen",
-            # parameters=[{"use_sim_time": LaunchConfiguration("use_sim_time")}],
-            arguments=[
-                # Sim time
-                "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
-                # All link poses → TF tree
-                f"/world/{world_name}/dynamic_pose/info@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
-                # Joint states (if any movable joints)
-                f"/world/{world_name}/model/x500/joint_state@sensor_msgs/msg/JointState[gz.msgs.Model",
-                # Camera image + info so perception nodes can subscribe
-                f"/world/{world_name}/model/{camera_model_name}/link/camera_link/sensor/imager/image@sensor_msgs/msg/Image[gz.msgs.Image",
-                f"/world/{world_name}/model/{camera_model_name}/link/camera_link/sensor/imager/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo",
-            ],
+            arguments=bridge_args,
         )
 
-        # Robot‑state publisher directly from the SDF
-        rsp = Node(
-            package="robot_state_publisher",
-            executable="robot_state_publisher",
-            name="x500_state_publisher",
-            output="screen",
-            parameters=[
-                {
-                    "robot_description": sdf_xml,
-                    "use_sim_time": LaunchConfiguration("use_sim_time"),
-                }
-            ],
-        )
-
-        return [px4_sitl, bridge, rsp, mavros_launch]
+        return [px4_sitl, bridge, mavros_launch]
 
     # ── Final LD --------------------------------------------------------------
     return LaunchDescription([
         model_arg,
         use_sim_time_arg,
         world_arg,
-        camera_direction_arg,
         OpaqueFunction(function=_setup),
     ])

@@ -6,7 +6,6 @@
       # extras
       - image_pub
       - vibration
-      - distance_sensor
       - rangefinder
       - wheel_odometry
       # ─── heavy management plugins we want to disable ──
