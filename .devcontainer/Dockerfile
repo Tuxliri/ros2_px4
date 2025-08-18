@@ -19,6 +19,7 @@ RUN apt update && \
         python3-setuptools \
         python3-vcstool \
         python3-colcon-clean \
+        ros-dev-tools \
         ros-humble-apriltag-ros \
         ros-humble-foxglove-bridge \
         ros-humble-mavros \
@@ -56,11 +57,12 @@ RUN pip3 install \
 RUN curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
 RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
 RUN apt-get update
-RUN apt-get install -y ros-humble-ros-gzharmonic
-RUN apt install -y ros-humble-turtle-tf2-py ros-humble-tf2-tools ros-dev-tools
 
-RUN apt-get update
-RUN apt-get upgrade -y
+# Build ros_gz from source (as of 12-08-25 the prebuilt binaries do not include translation of LaserScan messages into Range ROS messages)
+ENV GZ_VERSION=harmonic
+
+# Initialize rosdep as root (ignore if already initialized)
+RUN rosdep init || true
 
 RUN useradd -rm -d /home/developer -s /bin/bash -g root -G sudo -u 1001 developer && \
     echo 'developer:developer' | chpasswd && \
@@ -74,8 +76,24 @@ USER developer
 RUN git clone --branch v1.16.0-rc3 https://github.com/PX4/PX4-Autopilot.git ~/PX4-Autopilot --recursive
 RUN echo developer | sudo -S bash /home/developer/PX4-Autopilot/Tools/setup/ubuntu.sh
 
-#RUN git clone --depth 1 --branch 9a0b666debcff4292ce51c4a52aab1f2e346e8e0 https://github.com/PX4/PX4-Autopilot.git ~/PX4-Autopilot --recursive && \
-#    echo developer | sudo -S bash /home/developer/PX4-Autopilot/Tools/setup/ubuntu.sh
+
+# ---- ros_gz from source (humble branch) ----
+# Create a colcon workspace and clone ros_gz
+RUN mkdir -p /home/developer/ws/src && \
+    cd /home/developer/ws/src && \
+    git clone https://github.com/gazebosim/ros_gz.git -b humble
+
+# Install dependencies (this may also install Gazebo libraries for Harmonic)
+RUN cd /home/developer/ws && \
+    rosdep update && \
+    rosdep install -r --from-paths src -i -y --rosdistro "$ROS_DISTRO"
+
+# Build the workspace
+RUN bash -lc "source /opt/ros/$ROS_DISTRO/setup.bash && cd /home/developer/ws && colcon build"
+
+# Source the overlay on shell startup
+RUN echo ". /home/developer/ws/install/setup.bash" >> ~/.bashrc
+# ---- end ros_gz from source ----
 
 # Install OpenVINS
 RUN mkdir -p ~/workspace/catkin_ws_ov/src/ && \
