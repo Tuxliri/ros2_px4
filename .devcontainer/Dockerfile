@@ -10,6 +10,8 @@ RUN apt update && \
         cmake \
         git \
         curl lsb-release gnupg \
+        geographiclib-tools && \
+        geographiclib-get-geoids egm96-5 && \
         libbullet-dev \
         python3-colcon-common-extensions \
         python3-flake8 \
@@ -26,6 +28,7 @@ RUN apt update && \
         ros-humble-mavros-extras \
         ros-humble-ros2bag \
         ros-humble-rosbag2* \
+        ros-humble-tf2-tools \
         libeigen3-dev \
         libboost-all-dev \
         libceres-dev \
@@ -69,11 +72,8 @@ RUN useradd -rm -d /home/developer -s /bin/bash -g root -G sudo -u 1001 develope
     echo 'developer ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/developer && \
     chmod 0440 /etc/sudoers.d/developer
 
-RUN apt-get install -y geographiclib-tools && \
-        geographiclib-get-geoids egm96-5
-
 USER developer
-RUN git clone --branch v1.16.0-rc3 https://github.com/PX4/PX4-Autopilot.git ~/PX4-Autopilot --recursive
+RUN git clone --branch release/1.16 https://github.com/PX4/PX4-Autopilot.git ~/PX4-Autopilot --recursive
 RUN echo developer | sudo -S bash /home/developer/PX4-Autopilot/Tools/setup/ubuntu.sh
 
 
